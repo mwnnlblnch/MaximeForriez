@@ -1,140 +1,163 @@
-# coding:utf8
+#coding:utf8
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy
 import scipy.stats
 import math
 
-# FONCTIONS LOCALES
-
+#Fonction pour ouvrir les fichiers
 def ouvrirUnFichier(nom):
-    """Ouvre un fichier CSV et renvoie un DataFrame"""
     with open(nom, "r", encoding="utf-8") as fichier:
-        contenu = pd.read_csv(fichier, low_memory=False) 
+        contenu = pd.read_csv(fichier)
     return contenu
 
+#Fonction pour convertir les données en données logarithmiques
 def conversionLog(liste):
-    """Convertit une liste de valeurs en logarithme naturel"""
-    return [math.log(x) for x in liste if x > 0]
+    log = []
+    for element in liste:
+        log.append(math.log(element))
+    return log
 
+#Fonction pour trier par ordre décroissant les listes (îles et populations)
 def ordreDecroissant(liste):
-    """Trie une liste en ordre décroissant"""
-    liste.sort(reverse=True)
+    liste.sort(reverse = True)
     return liste
 
+#Fonction pour obtenir le classement des listes spécifiques aux populations
 def ordrePopulation(pop, etat):
-    """Classe une liste de populations avec les états correspondants"""
     ordrepop = []
-    for i in range(len(pop)):
-        if not np.isnan(pop[i]):
-            ordrepop.append([float(pop[i]), etat[i]])
+    for element in range(0, len(pop)):
+        if np.isnan(pop[element]) == False:
+            ordrepop.append([float(pop[element]), etat[element]])
     ordrepop = ordreDecroissant(ordrepop)
-    for i in range(len(ordrepop)):
-        ordrepop[i] = [i + 1, ordrepop[i][1]]
+    for element in range(0, len(ordrepop)):
+        ordrepop[element] = [element + 1, ordrepop[element][1]]
     return ordrepop
 
+#Fonction pour obtenir l'ordre défini entre deux classements (listes spécifiques aux populations)
 def classementPays(ordre1, ordre2):
-    """Prépare la comparaison entre deux classements"""
     classement = []
     if len(ordre1) <= len(ordre2):
-        for e1 in range(len(ordre2)):
-            for e2 in range(len(ordre1)):
-                if ordre2[e1][1] == ordre1[e2][1]:
-                    classement.append([ordre1[e2][0], ordre2[e1][0], ordre1[e2][1]])
+        for element1 in range(0, len(ordre2) - 1):
+            for element2 in range(0, len(ordre1) - 1):
+                if ordre2[element1][1] == ordre1[element2][1]:
+                    classement.append([ordre1[element2][0], ordre2[element1][0], ordre1[element2][1]])
     else:
-        for e1 in range(len(ordre1)):
-            for e2 in range(len(ordre2)):
-                if ordre2[e2][1] == ordre1[e1][1]:
-                    classement.append([ordre1[e1][0], ordre2[e2][0], ordre1[e1][1]])
+        for element1 in range(0, len(ordre1) - 1):
+            for element2 in range(0, len(ordre2) - 1):
+                if ordre2[element2][1] == ordre1[element1][1]:
+                    classement.append([ordre1[element1][0], ordre2[element2][0], ordre1[element][1]])
     return classement
 
-# PARTIE 1 : ÎLES
-
+#Partie sur les îles
 iles = pd.DataFrame(ouvrirUnFichier("./data/island-index.csv"))
+print(iles.head())
 
-# ➤ Diagnostic : afficher les colonnes pour savoir leur nom exact
-print("Colonnes trouvées dans island-index.csv :")
-print(list(iles.columns))
+#Isoler la colonne des surfaces
+surfaces = list(iles["Surface (km²)"])
+surfaces = [float(x) for x in surfaces]
 
-# ➤ Détection automatique de la colonne contenant “Surface”
-col_surface = [col for col in iles.columns if "urface" in col.lower()]
-if len(col_surface) == 0:
-    raise KeyError("Aucune colonne contenant 'surface' n’a été trouvée dans le fichier island-index.csv.")
-col_surface = col_surface[0]
-print(f"Colonne détectée pour la surface : {col_surface}")
 
-# Isoler la colonne et convertir en float
-surface = list(pd.to_numeric(iles[col_surface], errors="coerce").dropna())
+continents = [
+    85545323, #Afrique / Asie / Europe
+    37856841, #Amérique
+    7768030, #Antarctique
+    7605049, #Australie
+]
 
-# Ajouter les surfaces supplémentaires
-surface.extend([85545323, 37856841, 7768030, 7605049])
+surfaces.extend([float(v) for v in continents])
 
-# Ordonner
-surface_ord = ordreDecroissant(surface.copy())
+print("ajout ok")
 
-# Visualiser la loi rang-taille
-rangs = list(range(1, len(surface_ord) + 1))
-plt.figure(figsize=(8, 5))
-plt.plot(rangs, surface_ord, marker='o', linestyle='none')
-plt.title("Loi rang-taille des îles")
+
+#ordre décroissant des surfaces
+surfaces_ordre = ordreDecroissant(surfaces)
+print("Top 10 des plus grandes surfaces d'îles et continents:")
+print(surfaces_ordre[0:10])
+
+#Loi rang-taille
+df = pd.DataFrame(surfaces_ordre, columns=["Surface (km²)"])
+df["rang"] = range(1, len(df) + 1)
+
+plt.figure(figsize=(7,5))
+plt.loglog(df["rang"], df["Surface (km²)"], marker="o")
+plt.title("Loi rang-taille des surfaces des îles et continents")
 plt.xlabel("Rang")
 plt.ylabel("Surface (km²)")
+plt.grid(True, which="both", ls="--", alpha=0.4)
+plt.tight_layout()
+plt.savefig("loi_rang_taille_iles_continents.png")
 plt.show()
 
-# Convertir en log
-log_rangs = conversionLog(rangs)
-log_surface = conversionLog(surface_ord)
-plt.figure(figsize=(8, 5))
-plt.plot(log_rangs, log_surface, marker='o', linestyle='none')
-plt.title("Loi rang-taille (log-log)")
-plt.xlabel("log(Rang)")
-plt.ylabel("log(Surface)")
+print("image rang-taille ok")
+
+#conversion logarithmique des surfaces
+log_rang = conversionLog(df["rang"])
+log_surface = conversionLog(df["Surface (km²)"])
+
+plt.figure(figsize=(7,5))
+plt.scatter(log_rang, log_surface)
+plt.title("Conversion logarithmique des surfaces des îles et continents")
+plt.xlabel("Log(Rang)")
+plt.ylabel("Log(Surface (km²))")
+plt.grid(True, which="both", ls="--", alpha=0.4)
+plt.tight_layout()
+plt.savefig("conversion_logarithmique_iles_continents.png")
 plt.show()
 
-# Test sur les rangs :
-# Non, on ne peut pas faire de test de rang simple ici, car la variable n’est pas issue d’un échantillon aléatoire.
+print("image conversion logarithmique ok")
 
-# PARTIE 2 : POPULATIONS DES ÉTATS
+# Etape n 7 
+# Les rangs étant issus d’un tri, ils ne sont pas i.i.d. et ne permettent pas de test statistique fiable. Le test doit donc être appliqué aux valeurs brutes de la colonne du CSV.
 
+#Partie sur les populations États du monde
 monde = pd.DataFrame(ouvrirUnFichier("./data/Le-Monde-HS-Etats-du-monde-2007-2025.csv"))
+print(monde.head())
 
-# Diagnostic : afficher les colonnes
-print("Colonnes trouvées dans Le-Monde-HS-Etats-du-monde-2007-2025.csv :")
-print(list(monde.columns))
+#Isolement colonnes
+colonnes = ["État", "Pop 2007", "Pop 2025", "Densité 2007", "Densité 2025"]
+donnees = monde[colonnes]
 
-# Identifier les noms exacts (peuvent varier selon le CSV)
-col_etat = [col for col in monde.columns if "état" in col.lower() or "state" in col.lower()][0]
-col_pop2007 = [col for col in monde.columns if "2007" in col and "Pop" in col][0]
-col_pop2025 = [col for col in monde.columns if "2025" in col and "Pop" in col][0]
-col_dens2007 = [col for col in monde.columns if "2007" in col and "Dens" in col][0]
-col_dens2025 = [col for col in monde.columns if "2025" in col and "Dens" in col][0]
+etats = list(donnees["État"])
+pop2007 = list(donnees["Pop 2007"])
+pop2025 = list(donnees["Pop 2025"])
+densite2007 = list(donnees["Densité 2007"])
+densite2025 = list(donnees["Densité 2025"])
+print("isolation ok")
 
-etats = list(monde[col_etat])
-pop2007 = list(pd.to_numeric(monde[col_pop2007], errors="coerce"))
-pop2025 = list(pd.to_numeric(monde[col_pop2025], errors="coerce"))
-dens2007 = list(pd.to_numeric(monde[col_dens2007], errors="coerce"))
-dens2025 = list(pd.to_numeric(monde[col_dens2025], errors="coerce"))
+# Ordre décroissant
+ordrepop2007 = ordrePopulation(pop2007, etats)
+ordrepop2025 = ordrePopulation(pop2025, etats)
+ordredensite2007 = ordrePopulation(densite2007, etats)
+ordredensite2025 = ordrePopulation(densite2025, etats)
+print("extrait ordre pop 2007", ordrepop2007[0:10])
+print("extrait ordre pop 2025", ordrepop2025[0:10])
+print("extrait ordre densite 2007", ordredensite2007[0:10])
+print("extrait ordre densite 2025", ordredensite2025[0:10])
 
-# Ordonner les populations et densités
-classement_pop2007 = ordrePopulation(pop2007, etats)
-classement_dens2007 = ordrePopulation(dens2007, etats)
+# Comparaison listes
+comparaison_liste = classementPays(ordrepop2007, ordredensite2025)
+comparaison_liste.sort()
+print("extrait comparaison liste", comparaison_liste[0:10])
 
-# Comparaison et corrélation
-comparaison2007 = classementPays(classement_pop2007, classement_dens2007)
-comparaison2007.sort()
+# Isolement colonnes
+rangs_pop = []
+rangs_densite = []
+for element in comparaison_liste:
+    rangs_pop.append(element[0])
+    rangs_densite.append(element[1])
 
-rangs_pop = [elem[0] for elem in comparaison2007]
-rangs_dens = [elem[1] for elem in comparaison2007]
+print("extrait rangs pop", rangs_pop[0:10])
+print("extrait rangs densite", rangs_densite[0:10])
 
-spearman, p_spearman = scipy.stats.spearmanr(rangs_pop, rangs_dens)
-kendall, p_kendall = scipy.stats.kendalltau(rangs_pop, rangs_dens)
+# Calcul de la corrélation et de la concordance
+from scipy.stats import spearmanr, kendalltau
 
-print("\n Corrélation des rangs 2007 :")
-print(f"Spearman = {spearman:.3f} (p = {p_spearman:.3f})")
-print(f"Kendall  = {kendall:.3f} (p = {p_kendall:.3f})")
+correlation_spearman = spearmanr(rangs_pop, rangs_densite)
+concordance_kendall = kendalltau(rangs_pop, rangs_densite)
 
-# Commentaire pour le rapport :
-# Les deux coefficients indiquent la corrélation entre le classement des États selon population et selon densité.
-# Spearman proche de 1 ou -1 → forte corrélation monotone
-# Kendall proche de 1 ou -1 → forte concordance des rangs
+print("Corrélation de Spearman :", correlation_spearman)
+print("Concordance de Kendall :", concordance_kendall)
+

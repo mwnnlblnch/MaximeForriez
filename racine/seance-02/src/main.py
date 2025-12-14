@@ -1,26 +1,3 @@
-#coding:utf8
-
-import pandas as pd
-import matplotlib.pyplot as plt
-
-# Source des données : https://www.data.gouv.fr/datasets/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour/
-with open("./data/resultats-elections-presidentielles-2022-1er-tour.csv","r") as fichier:
-    contenu = pd.read_csv(fichier)
-
-# Mettre dans un commentaire le numéro de la question
-# Question 1
-
-"""
-Analyse des résultats du 1er tour de l'élection présidentielle 2022
-Cours - Séance 02
-"""
-# -*- coding: utf-8 -*-
-"""
-Analyse des résultats du 1er tour de l'élection présidentielle 2022
-Cours - Séance 02
-"""
-
-# 1. Import des bibliothèques nécessaires
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -37,7 +14,7 @@ with open(data_path, "r", encoding="utf-8") as fichier:
         contenu = pd.read_csv(fichier, sep=",", quotechar='"')
 
 # 4. Affichage du DataFrame
-print("\n--- Aperçu du contenu du CSV ---")
+print("\n Aperçu du contenu du CSV")
 print(contenu.head())
 
 # 5. Nombre de lignes et colonnes
@@ -47,7 +24,7 @@ print(f"\nNombre de lignes : {n_lignes}")
 print(f"Nombre de colonnes : {n_colonnes}")
 
 # 6. Types des variables
-print("\n--- Types de données des colonnes ---")
+print("\n Types de données des colonnes")
 types_colonnes = contenu.dtypes
 print(types_colonnes)
 
@@ -71,7 +48,7 @@ for k, v in types_variables.items():
     print(f"{k} : {v}")
 
 # 7. Nom des colonnes (premières lignes)
-print("\n--- Nom des colonnes ---")
+print("\n Nom des colonnes")
 print(contenu.columns)
 
 # 8. Sélection du nombre d’inscrits
@@ -80,11 +57,11 @@ if "Inscrits" in contenu.columns:
 else:
     # Parfois le nom diffère légèrement selon la source du CSV
     inscrits = contenu.filter(like="Inscrit").iloc[:, 0]
-print("\n--- Exemple de valeurs d'inscrits ---")
+print("\n Exemple de valeurs d'inscrits")
 print(inscrits.head())
 
 # 9. Somme des colonnes quantitatives
-print("\n--- Somme des colonnes quantitatives ---")
+print("\n Somme des colonnes quantitatives")
 somme_colonnes = []
 for col in contenu.columns:
     if types_variables[col] in ["int", "float"]:
@@ -95,7 +72,7 @@ for col in contenu.columns:
         print(f"{col} : non numérique (ignoré)")
 
 # 10. Diagrammes en barres : inscrits et votants par département
-print("\n--- Création des diagrammes en barres ---")
+print("\n Création des diagrammes en barres")
 
 # On vérifie les noms de colonnes probables
 cols_departement = [c for c in contenu.columns if "Département" in c or "Code" in c][0]
@@ -116,10 +93,10 @@ for _, row in contenu.iterrows():
     plt.savefig(os.path.join(images_dir, f"bar_{dep}.png"))
     plt.close()
 
-print("✅ Diagrammes en barres enregistrés dans src/images/")
+print("Diagrammes en barres enregistrés dans src/images/")
 
 # 11. Diagrammes circulaires (votes blancs, nuls, exprimés, abstention)
-print("\n--- Création des diagrammes circulaires ---")
+print("\n Création des diagrammes circulaires")
 cols_blancs = [c for c in contenu.columns if "Blanc" in c][0]
 cols_nuls = [c for c in contenu.columns if "Nul" in c][0]
 cols_exprimes = [c for c in contenu.columns if "Exprim" in c][0]
@@ -137,10 +114,10 @@ for _, row in contenu.iterrows():
     plt.savefig(os.path.join(images_dir, f"pie_{dep}.png"))
     plt.close()
 
-print("✅ Diagrammes circulaires enregistrés dans src/images/")
+print("Diagrammes circulaires enregistrés dans src/images/")
 
 # 12. Histogramme de la distribution des inscrits
-print("\n--- Création de l'histogramme de la distribution des inscrits ---")
+print("\n Création de l'histogramme de la distribution des inscrits")
 
 plt.figure()
 plt.hist(contenu[cols_inscrits], bins=10, density=True, edgecolor='black')
@@ -151,4 +128,4 @@ plt.tight_layout()
 plt.savefig(os.path.join(images_dir, "histogramme_inscrits.png"))
 plt.close()
 
-print("✅ Histogramme enregistré dans src/images/")
+print("Histogramme enregistré dans src/images/")

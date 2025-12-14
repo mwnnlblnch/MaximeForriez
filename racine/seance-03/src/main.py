@@ -13,7 +13,7 @@ DATA_DIR = "data"
 IMG_DIR = "img"
 os.makedirs(IMG_DIR, exist_ok=True)
 
-# Etape 4 - Lire le CSV des résultats (with + détection du séparateur) et sélectionner colonnes quantitatives
+# Etape 4 - Lire le CSV des résultats
 with open(os.path.join(DATA_DIR, "resultats-elections-presidentielles-2022-1er-tour.csv"), "r", encoding="utf-8") as f:
     contenu = pd.read_csv(f, sep=None, engine="python")
 
@@ -26,10 +26,10 @@ cols = num.columns
 # Etape 5 - Calculer moyennes, médianes, modes, écart-type, écart absolu à la moyenne, étendue
 moyennes = num.mean().round(2)
 medianes = num.median().round(2)
-modes = num.mode().iloc[0].round(2)                            # première ligne = mode principal
-ecarts_type = num.std(ddof=0).round(2)                         # ddof=0 -> population
-ecarts_abs_moy = num.apply(lambda s: np.abs(s - s.mean()).mean()).round(2)  # écart absolu moyen
-etendues = (num.max() - num.min()).round(2)                    # étendue = max - min
+modes = num.mode().iloc[0].round(2)                            
+ecarts_type = num.std(ddof=0).round(2)                        
+ecarts_abs_moy = num.apply(lambda s: np.abs(s - s.mean()).mean()).round(2)  
+etendues = (num.max() - num.min()).round(2)                    
 
 # (affichage facultatif pour contrôle)
 print("\nMoyennes :\n", moyennes)
@@ -40,12 +40,12 @@ print("\nÉcarts absolus moyens :\n", ecarts_abs_moy)
 print("\nÉtendues :\n", etendues)
 
 # Etape 6 - Afficher la liste des paramètres
-print("\n--- Paramètres (par colonne quantitative) ---\n")
+print("\n Paramètres (par colonne quantitative) \n")
 for c in cols:
     print(f"{c} : Moyenne={moyennes[c]}, Médiane={medianes[c]}, Mode={modes[c]}, "
           f"Écart-type={ecarts_type[c]}, Écart abs. moy.={ecarts_abs_moy[c]}, Étendue={etendues[c]}")
 
-# Etape 7 - Calculer IQR et interdécile (avec quantile())
+# Etape 7 - Calculer IQR et interdécile (avec quantile)
 q1 = num.quantile(0.25)
 q3 = num.quantile(0.75)
 d1 = num.quantile(0.10)
@@ -54,7 +54,7 @@ d9 = num.quantile(0.90)
 iqr = (q3 - q1).round(2)
 idr = (d9 - d1).round(2)
 
-print("\n--- IQR et Interdécile (par colonne) ---\n")
+print("\n IQR et Interdécile (par colonne) \n")
 for c in cols:
     print(f"{c} : IQR={iqr[c]}, Interdécile={idr[c]}")
 
@@ -79,7 +79,7 @@ col_name = next((c for c in islands.columns if "Surface" in c and "km" in c), No
 if col_name is None:
     raise ValueError("Colonne 'Surface (km2)' introuvable dans island-index.csv")
 
-surface = pd.to_numeric(islands[col_name], errors="coerce")  # convertir proprement en float
+surface = pd.to_numeric(islands[col_name], errors="coerce")
 
 bins = [0, 10, 25, 50, 100, 2500, 5000, 10000, np.inf]
 labels = [
@@ -89,7 +89,7 @@ labels = [
 cats = pd.cut(surface, bins=bins, labels=labels, right=True, include_lowest=True)
 counts = cats.value_counts().reindex(labels).fillna(0).astype(int)
 
-print("\n--- Décompte des îles par intervalle de surface (km²) ---\n")
+print("\n Décompte des îles par intervalle de surface (km²) \n")
 print(counts)
 
 # Etape 11 Bonus - Sortie des paramètres statistiques au format CSV et Excel
